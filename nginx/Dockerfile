@@ -5,3 +5,5 @@ COPY nginx.conf /etc/nginx/
 
 RUN rm /etc/nginx/conf.d/default.conf
 COPY cvpr.conf /etc/nginx/conf.d/
+
+Copy ./static ./static
