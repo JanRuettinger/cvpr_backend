@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 
 services:
   flask_app:
@@ -6,8 +6,8 @@ services:
     restart: always
     build: ./flask_app
     expose:
-      - "3000"
-    command: gunicorn -w 8 -b :3000 app:app
+      - 8000
+    command: gunicorn -w 8 -b 0.0.0.0:8000 --log-file /app/logs/gunicorn.log --log-level=DEBUG app:app
 
   nginx:
     container_name: nginx
@@ -17,21 +17,34 @@ services:
       - "5000:5000"
     depends_on:
       - flask_app
+
+  elasticsearch:
+    container_name: elasticsearch
+    build: ./elasticsearch
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml
+      # - ./elasticsearch/config/:/usr/share/elasticsearch/config/
+    environment:
+      - "cluster.name=elasticsearch"
+      - "ES_JAVA_OPTS=-Xms256m -Xmx256m"
+      - "XPACK_SECURITY_ENABLED=false"
+    healthcheck:
+      test: "curl http://elasticsearch:9200"
+      interval: "1s"
+      timeout: "3s"
+      retries: 60
+    restart: always
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+
+
+    # depends_on:
+    #   - flask_app
 # version: "3"
 # services:
-#   elasticsearch:
-#     image: docker.elastic.co/elasticsearch/elasticsearch:7.8.0
-#     networks:
-#       - backend
-#     restart: always
-#     volumes:
-#       - ./ES_DATA:/usr/share/elasticsearch/data
-#     environment:
-#       - discovery.type=single-node
-#       - bootstrap.memory_lock=true
-#       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-#     ports:
-#       - "9200:9200"
+
 
 #   backend:
 #     build:
